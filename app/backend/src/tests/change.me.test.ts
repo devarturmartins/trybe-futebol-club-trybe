@@ -46,8 +46,8 @@ describe('Testa a model Teams', () => {
 
     chaiHttpResponse = await chai.request(app).get('/teams');
 
-    expect(chaiHttpResponse.body).to.be.equal(teams);
-    expect(chaiHttpResponse.status).to.be.equal(200);
+    expect(chaiHttpResponse.body).to.be.deep.equal(teams);
+    expect(chaiHttpResponse.status).to.be.deep.equal(200);
 
   });
 
@@ -56,7 +56,7 @@ describe('Testa a model Teams', () => {
 
     chaiHttpResponse = await chai.request(app).get('/teams');
 
-    expect(chaiHttpResponse.body).to.be.equal(teams[0]);
+    expect(chaiHttpResponse.body[0]).to.be.deep.equal(teams[0]);
     expect(chaiHttpResponse.status).to.be.equal(200);
 
   });
