@@ -1,5 +1,5 @@
 import { sign, Secret } from 'jsonwebtoken';
-import * as bcrypt from 'bcryptjs';
+// import * as bcrypt from 'bcryptjs';
 import Users from '../database/models/Users';
 
 interface LoginData {
@@ -8,21 +8,15 @@ interface LoginData {
 }
 
 const secret: Secret = process.env.JWT_SECRET as Secret;
+const jwtConfig: object = {
+  expiresIn: '7d',
+  algorithm: 'HS256',
+};
 
 export default class LoginService {
   public static async login(loginData: LoginData): Promise<string> {
-    const { email, password } = loginData;
-
-    if (!email || !password) throw new Error('All fields must be filled');
-
-    const user = await Users.findOne({ where: { email } });
-
-    if (!user) throw new Error('Incorrect username or password');
-
-    const compare = await bcrypt.compare(password, user.password);
-
-    if (!compare) throw new Error('Incorrect username or password');
-
+    const { email } = loginData;
+    const user: Users | null = await Users.findOne({ where: { email } }) as Users;
     const token = sign({
       data: {
         id: user.id,
@@ -30,10 +24,18 @@ export default class LoginService {
         username: user.username,
         role: user.role,
       },
-    }, secret, {
-      expiresIn: '7d',
-      algorithm: 'HS256',
-    });
+    }, secret, jwtConfig);
     return token;
+  }
+
+  public static async role(email: string): Promise<string> {
+    const data = await Users.findOne({ where: { email } });
+
+    if (!data) {
+      return 'Invalid email or password';
+    }
+
+    const { role } = data.dataValues;
+    return role;
   }
 }
