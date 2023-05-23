@@ -7,14 +7,13 @@ export default class LoginController {
       const token = await loginService.login(req.body);
       return res.status(200).json({ token });
     } catch (error: any) {
-      console.log(error);
       return res.status(500).json({ message: 'Invalid email or password' });
     }
   }
 
   public static async role(req: Request, res: Response): Promise<Response> {
     try {
-      const { email } = req.body.data;
+      const { email } = req.body.user.data;
       const role = await loginService.role(email);
       return res.status(200).json({ role });
     } catch (error: any) {
