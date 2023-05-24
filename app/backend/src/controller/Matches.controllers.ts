@@ -26,7 +26,6 @@ export default class MatchesController {
   public static async attMatch(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      console.log(req.body);
       const { homeTeamGoals, awayTeamGoals } = req.body;
       const match = await MatchesService.attMatch(id, homeTeamGoals, awayTeamGoals);
       res.status(200).json(match);
