@@ -16,7 +16,7 @@ export default class loginValidate {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
     const compare: boolean = bcrypt.compareSync(password, user.dataValues.password);
-    if (password.length < 6 || !compare || !email.match(regex)) {
+    if (password.length < 6 || !compare || !regex.test(email)) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
     next();

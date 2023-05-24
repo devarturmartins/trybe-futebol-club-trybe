@@ -1,61 +1,72 @@
-// import * as sinon from 'sinon';
-// import * as chai from 'chai';
-// // @ts-ignore
-// import chaiHttp = require('chai-http');
+import * as sinon from 'sinon';
+import * as chai from 'chai';
+import * as bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
+// @ts-ignore
+import chaiHttp = require('chai-http');
 
-// import { app } from '../app';
-// import Users from '../database/models/Users';
+import { app } from '../app';
+import Users from '../database/models/Users';
 
-// import { Response } from 'superagent';
+import { Response } from 'superagent';
 
-// chai.use(chaiHttp);
+chai.use(chaiHttp);
 
-// const { expect } = chai;
+const { expect } = chai;
 
-// const usersToLogin = [
-//     {
-//         valid: {
-//             email: 'admin@admin.com',
-//             password: 'secret_admin'
-//         }, 
-//         invalid: {
-//             email: '@artur.com',
-//             password: '123456'
-//         }
-//     }
-//   ]
+const loginValid = {
+    id: 1,
+    username: 'Admin',
+    role: 'admin',
+    email: 'admin@admin.com',
+    password: '$2a$08$xi.Hxk1czAO0nZR..B393u10aED0RQ1N3PAEXQ7HxtLjKPEZBu.PW',
+};
 
+const loginInvalid = {
+    id: 1,
+    username: 'Admin',
+    role: 'undefined',
+    email: 'admin@xablau.com',
+    password: 'senha_invalida',
+};
 
-// describe('Testa a model Users', () => {
-
-//   let chaiHttpResponse: Response;
-
-//   afterEach(() => {
-//     sinon.restore();
-//   });
-
-//   it('post user', async () => {
-//     const { valid } = usersToLogin[0];
-//     console.log(valid)
-//     sinon.stub(Users, 'findOne').resolves(valid as Users);
+const secret = process.env.JWT_SECRET;
+const jwtConfig: object = {
+  expiresIn: '7d',
+  algorithm: 'HS256',
+};
 
 
-//     chaiHttpResponse = await chai.request(app).post('/login');
-//     // console.log(chaiHttpResponse)
+describe('Testa a model Users', () => {
 
-//     expect(chaiHttpResponse.body).to.have.property('token');
-//     expect(chaiHttpResponse.status).to.be.equal(200);
+  let chaiHttpResponse: Response;
 
-//   });
+  afterEach(() => {
+    sinon.restore();
+  });
 
-//   it('Role', async () => {
-//     sinon.stub(Teams, 'findOne').resolves(teams[0] as Teams);
+  beforeEach(async () => {
+    sinon.stub(Users, 'findOne').withArgs({ where: { email: loginValid.email } }).resolves({dataValues: loginValid} as Users);
+  })
 
-//     chaiHttpResponse = await chai.request(app).get('/teams');
+  it('post user', async () => {
+    chaiHttpResponse = await chai.request(app).post('/login').send({
+        email: loginValid.email,
+        password: 'secret_admin',
+    });
+    console.log(chaiHttpResponse.body);
+    expect(chaiHttpResponse.body).to.have.property('token');
+    
+  });
 
-//     expect(chaiHttpResponse.body).to.be.equal(teams[0]);
-//     expect(chaiHttpResponse.status).to.be.equal(200);
+  it('post user', async () => {
+    chaiHttpResponse = await chai.request(app).post('/login').send({
+        email: loginValid.email,
+        password: 'artur',
+    });
+    expect(chaiHttpResponse.body).to.not.have.property('token');
+    expect(chaiHttpResponse.body).to.be.deep.equal({ message: 'Invalid email or password' });
+    
+  });
 
-//   });
-
-// });
+});

@@ -15,6 +15,7 @@ const jwtConfig: object = {
 
 export default class LoginService {
   public static async login(loginData: LoginData): Promise<string> {
+    console.log('service');
     const { email } = loginData;
     const user: Users | null = await Users.findOne({ where: { email } }) as Users;
     const token = sign({
