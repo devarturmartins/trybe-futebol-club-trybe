@@ -10,4 +10,13 @@ export default class LeaderboardController {
       res.status(500).json({ message: error.message });
     }
   }
+
+  public static async filter(req: Request, res: Response) {
+    try {
+      const result = await Leaderboard.filter();
+      res.status(200).json(result[0]);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 }
