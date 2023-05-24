@@ -100,7 +100,7 @@ export default class Leaderboard {
     return sequelize.query(QUERY_HOME);
   }
 
-  public static async filter(filter: string) {
+  public static async filter() {
     return sequelize.query(QUERY_FILTER);
   }
 }
