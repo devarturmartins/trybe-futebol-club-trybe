@@ -8,7 +8,6 @@ import Matches from '../database/models/Matches';
 
 import { Response } from 'superagent';
 
-
 chai.use(chaiHttp);
 
 const { expect } = chai;
@@ -1041,24 +1040,138 @@ describe('Testa a model Matches', () => {
   });
 
   it('finishes a match', async () => {
-    sinon.stub(Matches, 'findOne').resolves(matchesMock[0] as any);
-    sinon.stub(Matches, 'update').resolves(matchesMock[0] as any);
+    const login = await chai.request(app).post('/login').send({
+      email: 'admin@admin.com',
+      password: 'secret_admin',
+  });
+    sinon.stub(Matches, 'findByPk').resolves({ ...matches[45], update: sinon.stub() } as any);
 
-    chaiHttpResponse = await chai.request(app).patch('/matches/1/finish');
-    console.log(chaiHttpResponse.body);
+    chaiHttpResponse = await chai.request(app).patch('/matches/45/finish').set('Authorization', login.body.token);
 
     expect(chaiHttpResponse.status).to.be.equal(200);
 
   });
 
-  it('att a match', async () => {
-    sinon.stub(Matches, 'findOne').resolves(matchesMock[0] as any);
-    sinon.stub(Matches, 'update').resolves(matchesMock[0] as any);
+  it('finishes a match invalid', async () => {
+    const login = await chai.request(app).post('/login').send({
+      email: 'admin@admin.com',
+      password: 'secret_admin',
+  });
+    sinon.stub(Matches, 'findByPk').resolves({ ...matches[1], update: sinon.stub() } as any);
 
-    chaiHttpResponse = await chai.request(app).patch('/matches/1/att');
+    chaiHttpResponse = await chai.request(app).patch('/matches/1/finish').set('Authorization', login.body.token);
     console.log(chaiHttpResponse.body);
+    expect(chaiHttpResponse.status).to.be.equal(500);
+
+  });
+
+  it('att a match', async () => {
+    const login = await chai.request(app).post('/login').send({
+      email: 'admin@admin.com',
+      password: 'secret_admin',
+  });
+    sinon.stub(Matches, 'findByPk').resolves({ ...matches[46], update: sinon.stub() } as any);
+
+
+    chaiHttpResponse = await chai.request(app).patch('/matches/46').send({
+      homeTeamGoals: 15,
+      awayTeamGoals: 12,
+    }).set('Authorization', login.body.token);
 
     expect(chaiHttpResponse.status).to.be.equal(200);
+
+  });
+
+  it('att a match invalid', async () => {
+    const login = await chai.request(app).post('/login').send({
+      email: 'admin@admin.com',
+      password: 'secret_admin',
+  });
+    sinon.stub(Matches, 'findByPk').resolves({ ...matches[4], update: sinon.stub() } as any);
+
+
+    chaiHttpResponse = await chai.request(app).patch('/matches/4').send({
+      homeTeamGoals: 15,
+      awayTeamGoals: 12,
+    }).set('Authorization', login.body.token);
+
+    expect(chaiHttpResponse.status).to.be.equal(500);
+
+  });
+
+  it('create a match', async () => {
+    const login = await chai.request(app).post('/login').send({
+      email: 'admin@admin.com',
+      password: 'secret_admin',
+  });
+
+    sinon.stub(Matches, 'create').resolves({
+      homeTeamId: 5,
+      awayTeamId: 2,
+      homeTeamGoals: 20,
+      awayTeamGoals: 20,
+    } as any);
+
+
+    chaiHttpResponse = await chai.request(app).post('/matches').send({
+      homeTeamId: 1,
+      awayTeamId: 2,
+      homeTeamGoals: 20,
+      awayTeamGoals: 20,
+      update: sinon.stub()
+    }).set('Authorization', login.body.token);
+    expect(chaiHttpResponse.status).to.be.equal(201);
+
+  });
+
+  it('token invalid', async () => {
+
+    sinon.stub(Matches, 'create').resolves({
+      homeTeamId: 3,
+      awayTeamId: 2,
+      homeTeamGoals: 20,
+      awayTeamGoals: 20,
+    } as any);
+
+
+    chaiHttpResponse = await chai.request(app).post('/matches').send({
+      homeTeamId: 3,
+      awayTeamId: 2,
+      homeTeamGoals: 20,
+      awayTeamGoals: 20,
+      update: sinon.stub()
+    });
+    console.log(chaiHttpResponse.body);
+
+    expect(chaiHttpResponse.status).to.be.equal(401);
+    expect(chaiHttpResponse.body).to.be.deep.equal({ message: 'Token not found' });
+
+  });
+
+  it('create a match invalid because idHome = idAway', async () => {
+    const login = await chai.request(app).post('/login').send({
+      email: 'admin@admin.com',
+      password: 'secret_admin',
+  });
+
+    sinon.stub(Matches, 'create').resolves({
+      homeTeamId: 2,
+      awayTeamId: 2,
+      homeTeamGoals: 20,
+      awayTeamGoals: 20,
+    } as any);
+
+
+    chaiHttpResponse = await chai.request(app).post('/matches').send({
+      homeTeamId: 2,
+      awayTeamId: 2,
+      homeTeamGoals: 20,
+      awayTeamGoals: 20,
+      update: sinon.stub()
+    }).set('Authorization', login.body.token);
+
+    expect(chaiHttpResponse.status).to.be.equal(422);
+    expect(chaiHttpResponse.body).to.be.deep.equal({ message: 'It is not possible to create a match with two equal teams' });
 
   });
 

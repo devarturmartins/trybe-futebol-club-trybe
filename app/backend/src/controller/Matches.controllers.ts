@@ -19,6 +19,7 @@ export default class MatchesController {
       await MatchesService.finishMatch(id);
       res.status(200).json({ message: 'Finished' });
     } catch (err) {
+      console.log(err);
       res.status(500).json({ message: 'Internal Server Error' });
     }
   }

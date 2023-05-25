@@ -34,7 +34,12 @@ export default class MatchesService {
     if (!match) throw new Error('Match not found');
     if (match.inProgress === false) throw new Error('Match already finished');
     match.inProgress = false;
-    await match.save();
+    await match.update(
+      {
+        inProgress: false,
+      },
+      { where: { id } },
+    );
     return match;
   }
 
